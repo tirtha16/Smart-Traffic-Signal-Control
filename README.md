@@ -43,14 +43,3 @@ python plot_training.py --agent dqn
 # Watch the trained agent in action
 python visualize.py --agent dqn
 ```
-
-## What to expect
-
-After training, the DQN agent typically reduces average queue length by 25–40% vs the fixed-timer baseline by adapting phase length to current demand — staying green longer on the busy E/W axis when queues build up there.
-
-## Interview talking points
-
-- **Why DQN over tabular?** Continuous queue counts × phase × time blow up the state space; the MLP generalizes across similar states.
-- **Why a delta-style reward isn't used here**: the absolute-cost reward (`-queue - 0.1*wait`) gave more stable learning in this setup; both are valid choices and the env makes either easy to swap in.
-- **Why min-green + yellow?** Without them the agent learns to oscillate the phase rapidly, which is unsafe and unrealistic.
-- **Extensions**: multi-intersection coordination, real-world lane geometry via SUMO, prioritized replay, dueling DQN, or PPO for continuous phase-duration control.
