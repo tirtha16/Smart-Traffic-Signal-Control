@@ -1,5 +1,3 @@
-"""Trains a DQN or tabular Q-learning agent on the traffic intersection."""
-
 import argparse
 import os
 

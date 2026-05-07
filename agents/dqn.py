@@ -1,5 +1,3 @@
-"""DQN agent with experience replay and a target network."""
-
 import random
 from collections import deque
 

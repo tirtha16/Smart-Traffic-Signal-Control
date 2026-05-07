@@ -1,5 +1,3 @@
-"""Tabular Q-learning agent. Bins continuous queue counts into discrete buckets."""
-
 import numpy as np
 import pickle
 

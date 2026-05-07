@@ -1,5 +1,3 @@
-"""Single 4-way intersection traffic simulator with a Gym-like RL interface."""
-
 import numpy as np
 
 
@@ -48,8 +46,9 @@ class TrafficEnv:
         self.yellow_remaining = 0
         self.step_count = 0
         self.prev_total_wait = 0.0
-        self.history = {"wait": [], "queue": [], "throughput": []}
+        self.history = {"wait": [], "queue": [], "throughput": [], "max_queue_step": []}
         self.cars_passed = 0
+        self.max_queue_seen = 0
         return self._get_state()
 
     def _get_state(self):
@@ -95,9 +94,12 @@ class TrafficEnv:
         total_wait = float(np.sum(self.queues * self.waiting))
         reward = -float(np.sum(self.queues)) - 0.1 * float(np.sum(self.waiting))
 
+        step_max_q = int(np.max(self.queues))
+        self.max_queue_seen = max(self.max_queue_seen, step_max_q)
         self.history["wait"].append(float(np.sum(self.waiting)))
         self.history["queue"].append(int(np.sum(self.queues)))
         self.history["throughput"].append(passed)
+        self.history["max_queue_step"].append(step_max_q)
         self.prev_total_wait = total_wait
 
         done = self.step_count >= self.max_steps
@@ -116,4 +118,5 @@ class TrafficEnv:
             "avg_queue": float(np.mean(self.history["queue"])) if self.history["queue"] else 0.0,
             "avg_wait_per_step": float(np.mean(self.history["wait"])) if self.history["wait"] else 0.0,
             "total_throughput": int(self.cars_passed),
+            "max_queue": int(self.max_queue_seen),
         }

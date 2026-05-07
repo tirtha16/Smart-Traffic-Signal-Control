@@ -1,45 +1,73 @@
 # Smart Traffic Signal Control with Reinforcement Learning
 
-An RL agent learns to control traffic-light timing at a 4-way intersection to minimize average queue length and waiting time, beating a fixed-timer baseline.
+A reinforcement learning agent that controls traffic light timing at a 4-way intersection to minimize average queue length and waiting time.
+
+## Results
+
+DQN was evaluated against a fixed-timer baseline and a tabular Q-learning agent across three traffic scenarios (low, normal, high). All numbers are averaged over 20 episodes of 500 steps each.
+
+| Scenario | Agent | Avg queue | Avg wait | Throughput |
+|----------|-------|-----------|----------|------------|
+| Low      | fixed_timer | 2.21 | 13.31 | 142.1 |
+| Low      | dqn         | 1.03 |  4.10 | 144.5 |
+| Normal   | fixed_timer | 6.10 | 27.02 | 334.8 |
+| Normal   | dqn         | 2.95 | 10.41 | 341.2 |
+| High     | fixed_timer | 18.31 | 164.98 | 569.5 |
+| High     | dqn         |  8.92 |  63.02 | 586.5 |
+
+DQN reduces average queue length by roughly 51-53% across all three scenarios.
 
 ## Project structure
 
 ```
-traffic_env.py          # custom 4-way intersection simulator (Gym-like API)
+traffic_env.py       4-way intersection simulator (Gym-style API)
 agents/
-  fixed_timer.py        # baseline: switches phase every N seconds
-  q_learning.py         # tabular Q-learning agent
-  dqn.py                # DQN agent (PyTorch) with replay buffer + target net
-train.py                # train DQN or Q-learning
-evaluate.py             # compare all three agents on identical episodes
-plot_training.py        # plot training curves
-visualize.py            # pygame animation of cars + signal
+  fixed_timer.py     baseline that switches phase every N seconds
+  q_learning.py      tabular Q-learning agent
+  dqn.py             DQN agent with replay buffer and target network
+train.py             training loop for DQN or Q-learning
+evaluate.py          multi-scenario comparison of all agents
+plot_training.py     training curve plots
+visualize.py         pygame animation of the intersection
 ```
 
 ## RL formulation
 
-- **State (6-dim)**: normalized queue lengths for `[N, S, E, W]`, current phase, time-in-phase.
-- **Actions (2)**: `0 = keep` current phase, `1 = switch` (subject to `min_green` and a yellow transition).
-- **Reward**: `-(total_queue) - 0.1 * total_waiting_time` — penalizes both backlog and the time cars spend stuck.
-- **Dynamics**: Poisson arrivals per lane (asymmetric by default — E/W is busier), 1 car/sec departure on green lanes, 3-sec yellow phase, 5-sec minimum green.
+State (6 dims): normalized queue lengths for N, S, E, W lanes, current phase, and time spent in current phase.
 
-## Quick start
+Actions (2): keep current phase, or switch (subject to a 5-second minimum green and a 3-second yellow transition).
+
+Reward: `-(total_queue) - 0.1 * total_waiting_time`
+
+Dynamics: Poisson arrivals per lane (asymmetric by default, with E/W busier than N/S), 1 car/sec departure on green lanes.
+
+## Setup
 
 ```bash
 pip install -r requirements.txt
+```
 
-# Train DQN (≈1–2 minutes on CPU)
+## Usage
+
+```bash
+# Train DQN (about 1-2 minutes on CPU)
 python train.py --agent dqn --episodes 300
 
 # Train tabular Q-learning baseline
 python train.py --agent qlearning --episodes 300
 
-# Compare all three agents
+# Compare all agents across low/normal/high traffic
 python evaluate.py --episodes 20
 
 # Plot training curves
 python plot_training.py --agent dqn
 
-# Watch the trained agent in action
+# Watch the trained agent
 python visualize.py --agent dqn
 ```
+
+## Notes
+
+The tabular Q-learning agent performs poorly in this setup because discretizing four continuous queue counts into bins loses too much information. DQN handles the continuous state directly via an MLP and generalizes across similar traffic patterns.
+
+The minimum green time and yellow transition are required to prevent the agent from oscillating the phase rapidly, which would not be physically realistic.

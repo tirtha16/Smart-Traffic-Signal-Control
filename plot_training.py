@@ -1,5 +1,3 @@
-"""Plots training curves saved by train.py."""
-
 import argparse
 import os
 

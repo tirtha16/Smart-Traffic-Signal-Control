@@ -1,8 +1,5 @@
-"""Pygame visualization of the intersection. Run with --agent {fixed_timer,qlearning,dqn}."""
-
 import argparse
 import os
-import sys
 
 import pygame
 
@@ -38,7 +35,7 @@ def load_agent(name, env, ckpt_dir="checkpoints"):
     raise ValueError(name)
 
 
-def draw_intersection(screen, font, env, info):
+def draw_intersection(screen, font, env, info, last_action, last_action_label):
     screen.fill(GRASS)
     cx, cy = WIDTH // 2, HEIGHT // 2
     road_w = 120
@@ -94,15 +91,20 @@ def draw_intersection(screen, font, env, info):
             break
         pygame.draw.rect(screen, CAR_COLOR, (x, cy - 30 - car_w // 2, car_h, car_w))
 
+    action_color = (240, 200, 60) if last_action == 1 else (180, 220, 240)
     lines = [
         f"step {env.step_count} / {env.max_steps}",
         f"phase: {'NS' if env.phase == PHASE_NS else 'EW'} {'(yellow)' if is_yellow else ''}",
         f"queues  N:{queues[0]} S:{queues[1]} E:{queues[2]} W:{queues[3]}",
+        f"max queue seen: {env.max_queue_seen}",
         f"throughput: {info['cars_passed']}",
     ]
     for i, line in enumerate(lines):
         surf = font.render(line, True, TEXT)
         screen.blit(surf, (10, 10 + i * 22))
+
+    action_surf = font.render(f"action: {last_action_label}", True, action_color)
+    screen.blit(action_surf, (10, 10 + len(lines) * 22 + 6))
 
 
 def main(agent_name="dqn", steps=500, fps=10):
@@ -116,6 +118,9 @@ def main(agent_name="dqn", steps=500, fps=10):
     agent = load_agent(agent_name, env)
     state = env.reset(seed=42)
     info = {"queues": env.queues, "yellow": False, "cars_passed": 0}
+    last_action = 0
+    last_action_label = "KEEP"
+    switch_count = 0
 
     running = True
     while running:
@@ -126,12 +131,22 @@ def main(agent_name="dqn", steps=500, fps=10):
                 running = False
 
         action = agent.act(state, greedy=True)
+        if action == 1:
+            label = "SWITCH"
+            switch_count += 1
+            print(f"[step {env.step_count:4d}] SWITCH  (queues={list(env.queues)})")
+        else:
+            label = "KEEP"
+        last_action, last_action_label = action, label
+
         state, _, done, info = env.step(action)
-        draw_intersection(screen, font, env, info)
+        draw_intersection(screen, font, env, info, last_action, last_action_label)
         pygame.display.flip()
         clock.tick(fps)
         if done:
             running = False
+
+    print(f"total switches: {switch_count}")
 
     pygame.quit()
     print("metrics:", env.metrics())

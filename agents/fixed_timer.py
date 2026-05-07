@@ -1,5 +1,3 @@
-"""Fixed-timer baseline: switches phase every `period` seconds."""
-
 from traffic_env import ACTION_KEEP, ACTION_SWITCH
 
 
