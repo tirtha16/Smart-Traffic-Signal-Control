@@ -29,6 +29,7 @@ train.py             training loop for DQN or Q-learning
 evaluate.py          multi-scenario comparison of all agents
 plot_training.py     training curve plots
 visualize.py         pygame animation of the intersection
+app.py               Streamlit web dashboard (live intersection + metrics)
 ```
 
 ## RL formulation
@@ -62,9 +63,23 @@ python evaluate.py --episodes 20
 # Plot training curves
 python plot_training.py --agent dqn
 
-# Watch the trained agent
+# Watch the trained agent (pygame desktop window)
 python visualize.py --agent dqn
+
+# Run the Streamlit web dashboard (opens at http://localhost:8501)
+streamlit run app.py
 ```
+
+## Web dashboard
+
+The Streamlit app provides an interactive browser interface to:
+
+- Pick the agent (DQN, Q-learning, or Fixed timer)
+- Pick a traffic scenario (Low, Normal, High)
+- Watch the intersection live with cars queueing on each lane
+- See real-time metrics (queue per lane, throughput, avg wait, max queue, switch count)
+- Track total queue length over time on a live chart
+- View the most recent SWITCH actions in an action log
 
 ## Notes
 
