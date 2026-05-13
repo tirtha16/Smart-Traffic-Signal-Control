@@ -2,6 +2,8 @@
 
 A reinforcement learning agent that controls traffic light timing at a 4-way intersection to minimize average queue length and waiting time.
 
+![Dashboard](assets/dashboard.png)
+
 ## Results
 
 DQN was evaluated against a fixed-timer baseline and a tabular Q-learning agent across three traffic scenarios (low, normal, high). All numbers are averaged over 20 episodes of 500 steps each.
